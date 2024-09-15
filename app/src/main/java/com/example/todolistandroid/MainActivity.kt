@@ -1,47 +1,143 @@
 package com.example.todolistandroid
 
+import android.app.AlertDialog
 import android.os.Bundle
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.todolistandroid.ui.theme.TodoListAndroidTheme
+import java.util.UUID
 
 class MainActivity : ComponentActivity() {
+
+    var todoList = mutableListOf<Todo>()
+    var todoCounter: Int = 0
+    var todoIterator: Int = 0
+    var doneCounter: Int = 0
+
+    class Todo(name: String, done: Boolean, id: String) {
+        var Name = name
+        var Done = done
+        val Id = id
+
+        fun redactName(newName: String){
+            if (newName != ""){
+                this.Name = newName
+            }
+        }
+    }
+
+    fun addTodoManually(): String {
+        val name = "Todo №" + (todoIterator + 1).toString()
+        val id = UUID.randomUUID().toString()
+        addTodo(name, false, id)
+        return id
+    }
+
+    fun addTodo(name: String, done: Boolean, id: String){
+        todoIterator++
+        todoCounter++
+        var todo = Todo(name, done, id)
+        todoList.add(todo)
+    }
+
+    fun showInputDialog(id: String) {
+        // Inflate the dialog layout
+        val dialogView = layoutInflater.inflate(R.layout.dialog_input, null)
+        val editTextInput = dialogView.findViewById<EditText>(R.id.alertTextEdit)
+
+        // Build the dialog
+        val dialogBuilder = AlertDialog.Builder(this)
+            .setTitle("User Input")
+            .setView(dialogView)
+            .setPositiveButton("Save") { dialog, _ ->
+                val userInput = editTextInput.text.toString()
+                // Change appropriate task properties
+
+                Toast.makeText(this, "You entered: $userInput", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.cancel()
+            }
+
+        // Show the dialog
+        dialogBuilder.create().show()
+    }
+
+    fun constructTodoView(id: String): LinearLayout{
+        val todoScrollView = LinearLayout(this)
+        var linearLayoutId = View.generateViewId()
+        todoScrollView.id = linearLayoutId
+        todoScrollView.orientation = LinearLayout.HORIZONTAL
+
+        val testTextView = TextView(this)
+        testTextView.text = "TESITNG!!!"
+
+        val redactButton = Button(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            text = "✏\uFE0F"
+        }
+        redactButton.setOnClickListener {
+            // Change related task message to the new one that you will get from user
+            // Create alertDialog
+            showInputDialog(id)
+        }
+
+
+        val deleteButton = Button(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            text = "\uD83D\uDDD1\uFE0F"
+        }
+        deleteButton.setOnClickListener {
+            var parentNode: LinearLayout = findViewById(R.id.mainContainer)
+            var childNode: LinearLayout = findViewById(linearLayoutId)//LinearLayout can not be cast to ScrollView
+            parentNode.removeView(childNode)
+            todoList.filter {it.Id != id}
+        }
+
+        todoScrollView.addView(testTextView)
+        todoScrollView.addView(redactButton)
+        todoScrollView.addView(deleteButton)
+        return todoScrollView
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            TodoListAndroidTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+            testingOne()
+        }
+        setContentView(R.layout.activity_main)
+        val AddTodoButton: Button = findViewById<Button>(R.id.buttonAdd)
+        val MainScrollView: LinearLayout = findViewById<LinearLayout>(R.id.mainContainer)
+        AddTodoButton.setOnClickListener {
+            val id = addTodoManually()
+            MainScrollView.addView(constructTodoView(id))
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun testingOne() {
     TodoListAndroidTheme {
-        Greeting("Android")
+        Text("texting test")
     }
 }
