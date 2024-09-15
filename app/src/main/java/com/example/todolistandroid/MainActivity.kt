@@ -20,10 +20,11 @@ import java.util.UUID
 
 class MainActivity : ComponentActivity() {
 
-    var todoList = mutableListOf<Todo>()
+    var todoMap = mutableMapOf<String, Todo>()
     var todoCounter: Int = 0
     var todoIterator: Int = 0
     var doneCounter: Int = 0
+
 
     class Todo(name: String, done: Boolean, id: String) {
         var Name = name
@@ -48,7 +49,7 @@ class MainActivity : ComponentActivity() {
         todoIterator++
         todoCounter++
         var todo = Todo(name, done, id)
-        todoList.add(todo)
+        todoMap[id] = todo
     }
 
     fun showInputDialog(id: String) {
@@ -63,6 +64,7 @@ class MainActivity : ComponentActivity() {
             .setPositiveButton("Save") { dialog, _ ->
                 val userInput = editTextInput.text.toString()
                 // Change appropriate task properties
+                todoMap[id]!!.Name = userInput
 
                 Toast.makeText(this, "You entered: $userInput", Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
@@ -73,6 +75,7 @@ class MainActivity : ComponentActivity() {
 
         // Show the dialog
         dialogBuilder.create().show()
+        println(todoMap.toString())
     }
 
     fun constructTodoView(id: String): LinearLayout{
@@ -82,7 +85,7 @@ class MainActivity : ComponentActivity() {
         todoScrollView.orientation = LinearLayout.HORIZONTAL
 
         val testTextView = TextView(this)
-        testTextView.text = "TESITNG!!!"
+        testTextView.text = todoMap[id]!!.Name
 
         val redactButton = Button(this).apply {
             layoutParams = LinearLayout.LayoutParams(
@@ -109,7 +112,7 @@ class MainActivity : ComponentActivity() {
             var parentNode: LinearLayout = findViewById(R.id.mainContainer)
             var childNode: LinearLayout = findViewById(linearLayoutId)//LinearLayout can not be cast to ScrollView
             parentNode.removeView(childNode)
-            todoList.filter {it.Id != id}
+            todoMap.remove(id)
         }
 
         todoScrollView.addView(testTextView)
