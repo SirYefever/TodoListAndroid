@@ -9,6 +9,8 @@ import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 class MainActivity : ComponentActivity() {
 
@@ -17,8 +19,8 @@ class MainActivity : ComponentActivity() {
     var todoIterator: Int = 0
     var doneCounter: Int = 0
 
-
-    class Todo(name: String, done: Boolean, id: String, todoIterator: Int) {
+    @Serializable
+    class Todo(var name: String, var done: Boolean, var id: String, var todoIterator: Int) {
         var Name = name
         var Done = done
         val Id = id
@@ -117,6 +119,13 @@ class MainActivity : ComponentActivity() {
         todoScrollView.addView(redactButton)
         todoScrollView.addView(deleteButton)
         return todoScrollView
+    }
+
+    fun exportAsJson() {
+        for (todo in todoMap){
+            Json.encodeToJsonElement(todo.value)
+        }
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
