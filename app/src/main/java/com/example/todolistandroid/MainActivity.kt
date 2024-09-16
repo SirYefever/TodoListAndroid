@@ -2,21 +2,13 @@ package com.example.todolistandroid
 
 import android.app.AlertDialog
 import android.os.Bundle
-import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.todolistandroid.ui.theme.TodoListAndroidTheme
-import java.util.UUID
 
 class MainActivity : ComponentActivity() {
 
@@ -26,10 +18,11 @@ class MainActivity : ComponentActivity() {
     var doneCounter: Int = 0
 
 
-    class Todo(name: String, done: Boolean, id: String) {
+    class Todo(name: String, done: Boolean, id: String, todoIterator: Int) {
         var Name = name
         var Done = done
         val Id = id
+        var Number = todoIterator
 
         fun redactName(newName: String){
             if (newName != ""){
@@ -40,7 +33,7 @@ class MainActivity : ComponentActivity() {
 
     fun addTodoManually(): String {
         val name = "Todo №" + (todoIterator + 1).toString()
-        val id = UUID.randomUUID().toString()
+        val id = "todo" + todoIterator.toString()
         addTodo(name, false, id)
         return id
     }
@@ -48,7 +41,7 @@ class MainActivity : ComponentActivity() {
     fun addTodo(name: String, done: Boolean, id: String){
         todoIterator++
         todoCounter++
-        var todo = Todo(name, done, id)
+        var todo = Todo(name, done, id, todoIterator)
         todoMap[id] = todo
     }
 
@@ -65,8 +58,10 @@ class MainActivity : ComponentActivity() {
                 val userInput = editTextInput.text.toString()
                 // Change appropriate task properties
                 todoMap[id]!!.Name = userInput
-
-                Toast.makeText(this, "You entered: $userInput", Toast.LENGTH_SHORT).show()
+                // Take textView by id that is now templated and change its text property with setText(?)
+                var parentNode: LinearLayout = findViewById(R.id.mainContainer)
+                var childNode: TextView = parentNode.findViewWithTag<TextView>("todoNameView" + todoMap[id]!!.Number.toString())
+                childNode.setText(userInput)
                 dialog.dismiss()
             }
             .setNegativeButton("Cancel") { dialog, _ ->
@@ -80,12 +75,15 @@ class MainActivity : ComponentActivity() {
 
     fun constructTodoView(id: String): LinearLayout{
         val todoScrollView = LinearLayout(this)
-        var linearLayoutId = View.generateViewId()
-        todoScrollView.id = linearLayoutId
+//        var linearLayoutId = View.generateViewId()
+        val linearLayoutId = "todoView" + todoIterator.toString()
+//        todoScrollView.id = linearLayoutId
+        todoScrollView.setTag(linearLayoutId)
         todoScrollView.orientation = LinearLayout.HORIZONTAL
 
-        val testTextView = TextView(this)
-        testTextView.text = todoMap[id]!!.Name
+        val todoNameView = TextView(this)
+        todoNameView.text = todoMap[id]!!.Name
+        todoNameView.tag = "todoNameView" + todoMap[id]!!.Number.toString()
 
         val redactButton = Button(this).apply {
             layoutParams = LinearLayout.LayoutParams(
@@ -110,12 +108,12 @@ class MainActivity : ComponentActivity() {
         }
         deleteButton.setOnClickListener {
             var parentNode: LinearLayout = findViewById(R.id.mainContainer)
-            var childNode: LinearLayout = findViewById(linearLayoutId)//LinearLayout can not be cast to ScrollView
+            var childNode: LinearLayout = parentNode.findViewWithTag<LinearLayout>(linearLayoutId)
             parentNode.removeView(childNode)
             todoMap.remove(id)
         }
 
-        todoScrollView.addView(testTextView)
+        todoScrollView.addView(todoNameView)
         todoScrollView.addView(redactButton)
         todoScrollView.addView(deleteButton)
         return todoScrollView
@@ -125,7 +123,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            testingOne()
         }
         setContentView(R.layout.activity_main)
         val AddTodoButton: Button = findViewById<Button>(R.id.buttonAdd)
@@ -134,13 +131,5 @@ class MainActivity : ComponentActivity() {
             val id = addTodoManually()
             MainScrollView.addView(constructTodoView(id))
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun testingOne() {
-    TodoListAndroidTheme {
-        Text("texting test")
     }
 }
