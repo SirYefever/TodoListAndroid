@@ -3,6 +3,7 @@ package com.example.todolistandroid
 import android.app.AlertDialog
 import android.os.Bundle
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -16,6 +17,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
 
+// TODO: 1) No-items message, 2) Progress bar with encouraging messages, 3) Smaller buttons
 class MainActivity : ComponentActivity() {
 
     var todoMap = mutableMapOf<String, Todo>()
@@ -43,19 +45,15 @@ class MainActivity : ComponentActivity() {
     }
 
     fun showInputDialog(id: String) {
-        // Inflate the dialog layout
         val dialogView = layoutInflater.inflate(R.layout.dialog_input, null)
         val editTextInput = dialogView.findViewById<EditText>(R.id.alertTextEdit)
 
-        // Build the dialog
         val dialogBuilder = AlertDialog.Builder(this)
             .setTitle("User Input")
             .setView(dialogView)
             .setPositiveButton("Save") { dialog, _ ->
                 val userInput = editTextInput.text.toString()
-                // Change appropriate task properties
                 todoMap[id]!!.todoName = userInput
-                // Take textView by id that is now templated and change its text property with setText(?)
                 var parentNode: LinearLayout = findViewById(R.id.mainContainer)
                 var childNode: TextView = parentNode.findViewWithTag<TextView>("todoNameView" + todoMap[id]!!.Number.toString())
                 childNode.setText(userInput)
@@ -65,18 +63,29 @@ class MainActivity : ComponentActivity() {
                 dialog.cancel()
             }
 
-        // Show the dialog
         dialogBuilder.create().show()
         println(todoMap.toString())
     }
 
     fun constructTodoView(id: String): LinearLayout{
         val todoScrollView = LinearLayout(this)
-//        var linearLayoutId = View.generateViewId()
         val linearLayoutId = "todoView" + todoIterator.toString()
-//        todoScrollView.id = linearLayoutId
         todoScrollView.setTag(linearLayoutId)
         todoScrollView.orientation = LinearLayout.HORIZONTAL
+
+        val checkBox = CheckBox(this)
+        if (todoMap[id]!!.DONE) {
+            checkBox.isChecked = true
+        }
+        checkBox.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                doneCounter++;
+                todoMap[id]!!.DONE = !todoMap[id]!!.DONE
+            } else {
+                doneCounter--;
+                todoMap[id]!!.DONE = !todoMap[id]!!.DONE
+            }
+        }
 
         val todoNameView = TextView(this)
         todoNameView.text = todoMap[id]!!.todoName
@@ -90,8 +99,6 @@ class MainActivity : ComponentActivity() {
             text = "✏\uFE0F"
         }
         redactButton.setOnClickListener {
-            // Change related task message to the new one that you will get from user
-            // Create alertDialog
             showInputDialog(id)
         }
 
@@ -110,6 +117,7 @@ class MainActivity : ComponentActivity() {
             todoMap.remove(id)
         }
 
+        todoScrollView.addView(checkBox)
         todoScrollView.addView(todoNameView)
         todoScrollView.addView(redactButton)
         todoScrollView.addView(deleteButton)
@@ -125,6 +133,9 @@ class MainActivity : ComponentActivity() {
 
     fun importAsJson() {
         val MainScrollView: LinearLayout = findViewById<LinearLayout>(R.id.mainContainer)
+        todoMap.clear() // Not sure if it's better to remove all previous todos when importing
+        MainScrollView.removeAllViews()
+
         val gson = Gson()
         val filePath = this.getFilesDir().getPath() + "/Todo_List"
         val fileContent = File(filePath).readText()
