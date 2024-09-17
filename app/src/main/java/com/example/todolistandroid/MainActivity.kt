@@ -11,6 +11,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.io.File
 
 class MainActivity : ComponentActivity() {
 
@@ -20,17 +24,8 @@ class MainActivity : ComponentActivity() {
     var doneCounter: Int = 0
 
     @Serializable
-    class Todo(var name: String, var done: Boolean, var id: String, var todoIterator: Int) {
-        var Name = name
-        var Done = done
-        val Id = id
-        var Number = todoIterator
+    class Todo(var todoName: String, var DONE: Boolean, var todoId: String, var Number: Int) {
 
-        fun redactName(newName: String){
-            if (newName != ""){
-                this.Name = newName
-            }
-        }
     }
 
     fun addTodoManually(): String {
@@ -59,7 +54,7 @@ class MainActivity : ComponentActivity() {
             .setPositiveButton("Save") { dialog, _ ->
                 val userInput = editTextInput.text.toString()
                 // Change appropriate task properties
-                todoMap[id]!!.Name = userInput
+                todoMap[id]!!.todoName = userInput
                 // Take textView by id that is now templated and change its text property with setText(?)
                 var parentNode: LinearLayout = findViewById(R.id.mainContainer)
                 var childNode: TextView = parentNode.findViewWithTag<TextView>("todoNameView" + todoMap[id]!!.Number.toString())
@@ -84,7 +79,7 @@ class MainActivity : ComponentActivity() {
         todoScrollView.orientation = LinearLayout.HORIZONTAL
 
         val todoNameView = TextView(this)
-        todoNameView.text = todoMap[id]!!.Name
+        todoNameView.text = todoMap[id]!!.todoName
         todoNameView.tag = "todoNameView" + todoMap[id]!!.Number.toString()
 
         val redactButton = Button(this).apply {
@@ -122,10 +117,23 @@ class MainActivity : ComponentActivity() {
     }
 
     fun exportAsJson() {
-        for (todo in todoMap){
-            Json.encodeToJsonElement(todo.value)
-        }
+        val gson = Gson()
+        var file = File(this.filesDir.toString(), "Todo_List")
+        file.writeText(gson.toJson(todoMap.values))
 
+    }
+
+    fun importAsJson() {
+        val MainScrollView: LinearLayout = findViewById<LinearLayout>(R.id.mainContainer)
+        val gson = Gson()
+        val filePath = this.getFilesDir().getPath() + "/Todo_List"
+        val fileContent = File(filePath).readText()
+        val todoListType = object: TypeToken<List<Todo>>() {}.type
+        val todoList: List<Todo> = gson.fromJson(fileContent, todoListType)
+        for (todo in todoList) {
+            addTodo(todo.todoName, todo.DONE, todo.todoId)
+            MainScrollView.addView(constructTodoView(todo.todoId))
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -139,6 +147,14 @@ class MainActivity : ComponentActivity() {
         AddTodoButton.setOnClickListener {
             val id = addTodoManually()
             MainScrollView.addView(constructTodoView(id))
+        }
+        val ExportButton: Button = findViewById<Button>(R.id.buttonExport)
+        ExportButton.setOnClickListener {
+            exportAsJson()
+        }
+        val ImportButton: Button = findViewById<Button>(R.id.buttonImport)
+        ImportButton.setOnClickListener {
+            importAsJson()
         }
     }
 }

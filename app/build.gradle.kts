@@ -69,4 +69,5 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.kotlinx.serialization.json)
     implementation(kotlin("script-runtime"))
+    implementation("com.google.code.gson:gson:2.8.9")
 }
