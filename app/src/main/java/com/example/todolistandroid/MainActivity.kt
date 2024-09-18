@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
@@ -14,18 +15,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
-import com.google.android.material.snackbar.Snackbar
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.net.URI
-import kotlin.io.path.Path
 
-// TODO: 1) No-items message, 2) Progress bar with encouraging messages, 3) Smaller buttons, 4) Manage snackbar, 5) Deal with permissions in AndroidManifest.xml
+// TODO: 2) Progress bar with encouraging messages, 3) Smaller buttons, 4) Manage snackbar, 5) Deal with permissions in AndroidManifest.xml
 class MainActivity : ComponentActivity() {
 
     var todoMap = mutableMapOf<String, Todo>()
@@ -35,7 +31,6 @@ class MainActivity : ComponentActivity() {
 
     @Serializable
     class Todo(var todoName: String, var DONE: Boolean, var todoId: String, var Number: Int) {
-
     }
 
     fun addTodoManually(): String {
@@ -46,6 +41,11 @@ class MainActivity : ComponentActivity() {
     }
 
     fun addTodo(name: String, done: Boolean, id: String){
+        val blankMessageView = findViewById<TextView>(R.id.blankScreenMessage)
+        if (blankMessageView != null) {
+            val parent = blankMessageView.parent as ViewGroup
+            parent.removeView(blankMessageView)
+        }
         todoIterator++
         todoCounter++
         var todo = Todo(name, done, id, todoIterator)
@@ -60,7 +60,10 @@ class MainActivity : ComponentActivity() {
             .setTitle("User Input")
             .setView(dialogView)
             .setPositiveButton("Save") { dialog, _ ->
-                val userInput = editTextInput.text.toString()
+                var userInput = editTextInput.text.toString()
+                if (userInput.length > 16) {
+                    userInput = userInput.substring(0,12) + "..."
+                }
                 todoMap[id]!!.todoName = userInput
                 var parentNode: LinearLayout = findViewById(R.id.mainContainer)
                 var childNode: TextView = parentNode.findViewWithTag<TextView>("todoNameView" + todoMap[id]!!.Number.toString())
@@ -70,9 +73,7 @@ class MainActivity : ComponentActivity() {
             .setNegativeButton("Cancel") { dialog, _ ->
                 dialog.cancel()
             }
-
         dialogBuilder.create().show()
-        println(todoMap.toString())
     }
 
     fun constructTodoView(id: String): LinearLayout{
@@ -96,6 +97,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val todoNameView = TextView(this)
+        todoNameView.textSize = 24F
         todoNameView.text = todoMap[id]!!.todoName
         todoNameView.tag = "todoNameView" + todoMap[id]!!.Number.toString()
 
@@ -136,8 +138,6 @@ class MainActivity : ComponentActivity() {
         val gson = Gson()
         var file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString(), "Todo_List")
         file.writeText(gson.toJson(todoMap.values))
-//        val mySnackbar = Snackbar.make(findViewById(R.id.buttonAdd), R.string.export_message, Snackbar.LENGTH_SHORT)
-//        mySnackbar.show()
     }
 
     fun importAsJson(data: InputStream) {
@@ -147,10 +147,7 @@ class MainActivity : ComponentActivity() {
 
         val gson = Gson()
 
-//        val fileContent = File(filePath).readText()
-//        val fileContent = data.toString()
         val todoListType = object: TypeToken<List<Todo>>() {}.type
-//        val todoList: List<Todo> = gson.fromJson(fileContent, todoListType)
         val reader = InputStreamReader(data)
         val todoList: List<Todo> = gson.fromJson(reader, todoListType)
         for (todo in todoList) {
@@ -199,7 +196,6 @@ class MainActivity : ComponentActivity() {
         }
         val ImportButton: Button = findViewById<Button>(R.id.buttonImport)
         ImportButton.setOnClickListener {
-//            importAsJson()
             callImportWindow()
         }
     }
