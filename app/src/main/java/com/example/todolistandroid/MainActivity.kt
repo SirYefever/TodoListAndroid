@@ -13,7 +13,6 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import kotlinx.serialization.Serializable
 import com.google.gson.Gson
@@ -22,13 +21,11 @@ import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
 
-// TODO: 2) Progress bar with encouraging messages, 3) Smaller buttons, 4) Manage snackbar, 5) Deal with permissions in AndroidManifest.xml
 class MainActivity : ComponentActivity() {
 
     var todoMap = mutableMapOf<String, Todo>()
     var todoCounter: Int = 0
     var todoIterator: Int = 0
-    var doneCounter: Int = 0
 
     @Serializable
     class Todo(var todoName: String, var DONE: Boolean, var todoId: String, var Number: Int) {
@@ -53,21 +50,18 @@ class MainActivity : ComponentActivity() {
         todoMap[id] = todo
     }
 
-    fun showInputDialog(id: String) {
+    fun showRedactDialog(id: String) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_input, null)
         val editTextInput = dialogView.findViewById<EditText>(R.id.alertTextEdit)
 
         val dialogBuilder = AlertDialog.Builder(this)
-            .setTitle("User Input")
+            .setTitle("Set description")
             .setView(dialogView)
             .setPositiveButton("Save") { dialog, _ ->
-                var userInput = editTextInput.text.toString()
-//                if (userInput.length > 16) {
-//                    userInput = userInput.substring(0,12) + "..."
-//                }
+                val userInput = editTextInput.text.toString()
                 todoMap[id]!!.todoName = userInput
-                var parentNode: LinearLayout = findViewById(R.id.mainContainer)
-                var childNode: TextView = parentNode.findViewWithTag<TextView>("todoNameView" + todoMap[id]!!.Number.toString())
+                val parentNode: LinearLayout = findViewById(R.id.mainContainer)
+                val childNode: TextView = parentNode.findViewWithTag<TextView>("todoNameView" + todoMap[id]!!.Number.toString())
                 childNode.setText(userInput)
                 dialog.dismiss()
             }
@@ -89,10 +83,8 @@ class MainActivity : ComponentActivity() {
         }
         checkBox.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                doneCounter++;
                 todoMap[id]!!.DONE = !todoMap[id]!!.DONE
             } else {
-                doneCounter--;
                 todoMap[id]!!.DONE = !todoMap[id]!!.DONE
             }
         }
@@ -103,16 +95,11 @@ class MainActivity : ComponentActivity() {
         todoNameView.tag = "todoNameView" + todoMap[id]!!.Number.toString()
 
         val redactButton = Button(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
             text = "✏\uFE0F"
         }
         redactButton.setOnClickListener {
-            showInputDialog(id)
+            showRedactDialog(id)
         }
-
 
         val deleteButton = Button(this).apply {
             layoutParams = LinearLayout.LayoutParams(
@@ -132,16 +119,37 @@ class MainActivity : ComponentActivity() {
         todoScrollView.addView(todoNameView)
         todoScrollView.addView(redactButton)
         todoScrollView.addView(deleteButton)
+
         todoNameView.layoutParams.width = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
             200f,
             resources.displayMetrics).toInt()
+
         return todoScrollView
     }
 
-    fun exportAsJson() {
+    fun showExportDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_input, null)
+        val editTextInput = dialogView.findViewById<EditText>(R.id.alertTextEdit)
+        var userInput: String = "Todo_List"
+
+        val dialogBuilder = AlertDialog.Builder(this)
+            .setTitle("Enter file name")
+            .setView(dialogView)
+            .setPositiveButton("Save") { dialog, _ ->
+                userInput = editTextInput.text.toString()
+                exportAsJson(userInput)
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.cancel()
+            }
+        dialogBuilder.create().show()
+    }
+
+    fun exportAsJson(fileName: String) {
         val gson = Gson()
-        var file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString(), "Todo_List")
+        val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString(), fileName)
         file.writeText(gson.toJson(todoMap.values))
     }
 
@@ -186,8 +194,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-        }
         setContentView(R.layout.activity_main)
         val AddTodoButton: Button = findViewById<Button>(R.id.buttonAdd)
         val MainScrollView: LinearLayout = findViewById<LinearLayout>(R.id.mainContainer)
@@ -197,7 +203,7 @@ class MainActivity : ComponentActivity() {
         }
         val ExportButton: Button = findViewById<Button>(R.id.buttonExport)
         ExportButton.setOnClickListener {
-            exportAsJson()
+            showExportDialog()
         }
         val ImportButton: Button = findViewById<Button>(R.id.buttonImport)
         ImportButton.setOnClickListener {
