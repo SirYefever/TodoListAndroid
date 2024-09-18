@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.util.TypedValue
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
@@ -61,9 +62,9 @@ class MainActivity : ComponentActivity() {
             .setView(dialogView)
             .setPositiveButton("Save") { dialog, _ ->
                 var userInput = editTextInput.text.toString()
-                if (userInput.length > 16) {
-                    userInput = userInput.substring(0,12) + "..."
-                }
+//                if (userInput.length > 16) {
+//                    userInput = userInput.substring(0,12) + "..."
+//                }
                 todoMap[id]!!.todoName = userInput
                 var parentNode: LinearLayout = findViewById(R.id.mainContainer)
                 var childNode: TextView = parentNode.findViewWithTag<TextView>("todoNameView" + todoMap[id]!!.Number.toString())
@@ -97,7 +98,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val todoNameView = TextView(this)
-        todoNameView.textSize = 24F
+        todoNameView.textSize = 22F
         todoNameView.text = todoMap[id]!!.todoName
         todoNameView.tag = "todoNameView" + todoMap[id]!!.Number.toString()
 
@@ -131,6 +132,10 @@ class MainActivity : ComponentActivity() {
         todoScrollView.addView(todoNameView)
         todoScrollView.addView(redactButton)
         todoScrollView.addView(deleteButton)
+        todoNameView.layoutParams.width = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            200f,
+            resources.displayMetrics).toInt()
         return todoScrollView
     }
 
