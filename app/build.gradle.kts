@@ -70,4 +70,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(kotlin("script-runtime"))
     implementation("com.google.code.gson:gson:2.8.9")
+    implementation (libs.material)
+    implementation ("com.google.android.material:material:1.1.0")
 }

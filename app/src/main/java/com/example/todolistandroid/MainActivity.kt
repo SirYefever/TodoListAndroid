@@ -1,7 +1,10 @@
 package com.example.todolistandroid
 
 import android.app.AlertDialog
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
@@ -16,8 +19,13 @@ import kotlinx.serialization.json.encodeToJsonElement
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
+import com.google.android.material.snackbar.Snackbar
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.net.URI
+import kotlin.io.path.Path
 
-// TODO: 1) No-items message, 2) Progress bar with encouraging messages, 3) Smaller buttons
+// TODO: 1) No-items message, 2) Progress bar with encouraging messages, 3) Smaller buttons, 4) Manage snackbar, 5) Deal with permissions in AndroidManifest.xml
 class MainActivity : ComponentActivity() {
 
     var todoMap = mutableMapOf<String, Todo>()
@@ -126,24 +134,50 @@ class MainActivity : ComponentActivity() {
 
     fun exportAsJson() {
         val gson = Gson()
-        var file = File(this.filesDir.toString(), "Todo_List")
+        var file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString(), "Todo_List")
         file.writeText(gson.toJson(todoMap.values))
-
+//        val mySnackbar = Snackbar.make(findViewById(R.id.buttonAdd), R.string.export_message, Snackbar.LENGTH_SHORT)
+//        mySnackbar.show()
     }
 
-    fun importAsJson() {
+    fun importAsJson(data: InputStream) {
         val MainScrollView: LinearLayout = findViewById<LinearLayout>(R.id.mainContainer)
         todoMap.clear() // Not sure if it's better to remove all previous todos when importing
         MainScrollView.removeAllViews()
 
         val gson = Gson()
-        val filePath = this.getFilesDir().getPath() + "/Todo_List"
-        val fileContent = File(filePath).readText()
+
+//        val fileContent = File(filePath).readText()
+//        val fileContent = data.toString()
         val todoListType = object: TypeToken<List<Todo>>() {}.type
-        val todoList: List<Todo> = gson.fromJson(fileContent, todoListType)
+//        val todoList: List<Todo> = gson.fromJson(fileContent, todoListType)
+        val reader = InputStreamReader(data)
+        val todoList: List<Todo> = gson.fromJson(reader, todoListType)
         for (todo in todoList) {
             addTodo(todo.todoName, todo.DONE, todo.todoId)
             MainScrollView.addView(constructTodoView(todo.todoId))
+        }
+    }
+
+    fun callImportWindow() {
+        val intent = Intent()
+            .setType("*/*")
+            .setAction(Intent.ACTION_GET_CONTENT)
+
+        startActivityForResult(Intent.createChooser(intent, "Select a file"), 123)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == 123 && resultCode == RESULT_OK) {
+            val selectedFile = data?.dataString
+            val test1 = Uri.parse(selectedFile)
+            contentResolver.openInputStream(test1).use {
+                if (it != null) {
+                    importAsJson(it)
+                }
+            }
         }
     }
 
@@ -165,7 +199,8 @@ class MainActivity : ComponentActivity() {
         }
         val ImportButton: Button = findViewById<Button>(R.id.buttonImport)
         ImportButton.setOnClickListener {
-            importAsJson()
+//            importAsJson()
+            callImportWindow()
         }
     }
 }
