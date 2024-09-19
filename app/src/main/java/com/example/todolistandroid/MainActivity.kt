@@ -11,9 +11,12 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
+import androidx.core.view.marginLeft
+import androidx.core.view.setMargins
 import kotlinx.serialization.Serializable
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -69,6 +72,12 @@ class MainActivity : ComponentActivity() {
 
     fun constructTodoView(id: String): LinearLayout{
         val todoScrollView = LinearLayout(this)
+        val layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        layoutParams.leftMargin = 60
+
         val linearLayoutId = "todoView" + todoIterator.toString()
         todoScrollView.setTag(linearLayoutId)
         todoScrollView.orientation = LinearLayout.HORIZONTAL
@@ -98,10 +107,6 @@ class MainActivity : ComponentActivity() {
         }
 
         val deleteButton = Button(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
             text = "\uD83D\uDDD1\uFE0F"
         }
         deleteButton.setOnClickListener {
@@ -111,14 +116,14 @@ class MainActivity : ComponentActivity() {
             todoMap.remove(id)
         }
 
-        todoScrollView.addView(checkBox)
+        todoScrollView.addView(checkBox, layoutParams)
         todoScrollView.addView(todoNameView)
         todoScrollView.addView(redactButton)
         todoScrollView.addView(deleteButton)
 
         todoNameView.layoutParams.width = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
-            200f,
+            160f,
             resources.displayMetrics).toInt()
 
         return todoScrollView
@@ -145,7 +150,11 @@ class MainActivity : ComponentActivity() {
 
     fun exportAsJson(fileName: String) {
         val gson = Gson()
-        val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString(), fileName)
+        val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toURI().path, fileName)
+        if (file.exists()) {
+            file.delete()
+        }
+        file.createNewFile()
         file.writeText(gson.toJson(todoMap.values))
     }
 
