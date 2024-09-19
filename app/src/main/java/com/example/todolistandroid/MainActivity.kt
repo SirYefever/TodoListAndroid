@@ -27,14 +27,6 @@ class MainActivity : ComponentActivity() {
     var todoCounter: Int = 0
     var todoIterator: Int = 0
 
-    @Serializable
-    class Todo(
-        var todoName: String,
-        var Done: Boolean,
-        var todoId: String,
-        var Number: Int) {
-    }
-
     fun addTodoManually(): String {
         val name = "Todo №" + (todoIterator + 1).toString()
         val id = "todo" + todoIterator.toString()
