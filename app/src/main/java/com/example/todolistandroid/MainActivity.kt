@@ -28,7 +28,11 @@ class MainActivity : ComponentActivity() {
     var todoIterator: Int = 0
 
     @Serializable
-    class Todo(var todoName: String, var DONE: Boolean, var todoId: String, var Number: Int) {
+    class Todo(
+        var todoName: String,
+        var Done: Boolean,
+        var todoId: String,
+        var Number: Int) {
     }
 
     fun addTodoManually(): String {
@@ -78,14 +82,14 @@ class MainActivity : ComponentActivity() {
         todoScrollView.orientation = LinearLayout.HORIZONTAL
 
         val checkBox = CheckBox(this)
-        if (todoMap[id]!!.DONE) {
+        if (todoMap[id]!!.Done) {
             checkBox.isChecked = true
         }
         checkBox.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                todoMap[id]!!.DONE = !todoMap[id]!!.DONE
+                todoMap[id]!!.Done = !todoMap[id]!!.Done
             } else {
-                todoMap[id]!!.DONE = !todoMap[id]!!.DONE
+                todoMap[id]!!.Done = !todoMap[id]!!.Done
             }
         }
 
@@ -164,7 +168,7 @@ class MainActivity : ComponentActivity() {
         val reader = InputStreamReader(data)
         val todoList: List<Todo> = gson.fromJson(reader, todoListType)
         for (todo in todoList) {
-            addTodo(todo.todoName, todo.DONE, todo.todoId)
+            addTodo(todo.todoName, todo.Done, todo.todoId)
             MainScrollView.addView(constructTodoView(todo.todoId))
         }
     }
@@ -197,6 +201,7 @@ class MainActivity : ComponentActivity() {
         setContentView(R.layout.activity_main)
         val AddTodoButton: Button = findViewById<Button>(R.id.buttonAdd)
         val MainScrollView: LinearLayout = findViewById<LinearLayout>(R.id.mainContainer)
+
         AddTodoButton.setOnClickListener {
             val id = addTodoManually()
             MainScrollView.addView(constructTodoView(id))
