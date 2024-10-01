@@ -1,5 +1,7 @@
 package com.example.todolistandroid
 
+import ApiInterface
+import RetrofitInstance
 import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
@@ -11,24 +13,45 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
-import androidx.core.view.marginLeft
-import androidx.core.view.setMargins
-import kotlinx.serialization.Serializable
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
 
+
 class MainActivity : ComponentActivity() {
+    private lateinit var apiInterface: ApiInterface
 
     var todoMap = mutableMapOf<String, Todo>()
     var todoCounter: Int = 0
     var todoIterator: Int = 0
+
+    private fun getApiInterface() {
+        apiInterface = RetrofitInstance.getInstance().create(ApiInterface::class.java)
+    }
+
+    private fun getTodoList() {
+        val call = apiInterface.getExampleData()
+        call.enqueue(object : Callback<List<Todo>> {
+            override fun onResponse(call: Call<List<Todo>>, response: Response<List<Todo>>) {
+                if (response.isSuccessful && response.body()!=null){
+                    response.body()!!.forEach { element ->
+                        addTodo(element.todoName, element.Done, element.todoId)
+                    }
+                }
+            }
+            override fun onFailure(call: Call<List<Todo>>, t: Throwable) {
+                t.printStackTrace()
+            }
+        })
+    }
 
     fun addTodoManually(): String {
         val name = "Todo №" + (todoIterator + 1).toString()
@@ -215,5 +238,7 @@ class MainActivity : ComponentActivity() {
         ImportButton.setOnClickListener {
             callImportWindow()
         }
+        getApiInterface()
+        getTodoList()
     }
 }

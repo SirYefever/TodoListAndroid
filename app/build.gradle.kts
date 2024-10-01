@@ -69,7 +69,10 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.kotlinx.serialization.json)
     implementation(kotlin("script-runtime"))
-    implementation("com.google.code.gson:gson:2.8.9")
+    implementation(libs.gson)
     implementation (libs.material)
-    implementation ("com.google.android.material:material:1.1.0")
+    implementation (libs.material.v110)
+    implementation (libs.retrofit)
+    implementation (libs.converter.gson)
+    implementation (libs.logging.interceptor)
 }
