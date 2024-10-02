@@ -1,11 +1,11 @@
 package com.example.todolistandroid
 
+import com.google.gson.annotations.SerializedName
 import kotlinx.serialization.Serializable
 
 @Serializable
-class Todo(
-    var todoName: String,
-    var Done: Boolean,
-    var todoId: String,
-    var Number: Int) {
-}
+data class Todo (
+    @SerializedName("id") var Id: Long,
+    @SerializedName("name") var Name: String? = null,
+    @SerializedName("isComplete") var IsComplete: Boolean = false
+)
