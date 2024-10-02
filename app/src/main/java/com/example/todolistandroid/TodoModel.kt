@@ -2,9 +2,9 @@ package com.example.todolistandroid
 
 class TodoModel {
     constructor(Name: String, IsComplete: Boolean) {
-        todoName = Name
+        name = Name
         isComplete = IsComplete
     }
-    var todoName: String?
+    var name: String?
     var isComplete: Boolean
 }

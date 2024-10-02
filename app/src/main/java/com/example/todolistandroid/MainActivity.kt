@@ -28,9 +28,14 @@ class MainActivity : ComponentActivity() {
     var todoList = mutableListOf<Todo>()
     var doneCounter: Int = 0
     var todoIterator: Int = 0
+    var handledTodo = Todo(0, null, false)
 
     private fun getApiInterface() {
         apiInterface = RetrofitInstance.getInstance().create(ApiInterface::class.java)
+    }
+
+    private fun onSuccessHandler(todo: Todo) {
+        handledTodo = todo
     }
 
     private fun getTodoById(id: Long) {
@@ -38,17 +43,22 @@ class MainActivity : ComponentActivity() {
         call.enqueue(object : Callback<Todo> {
             override fun onResponse(call: Call<Todo>, response: Response<Todo>) {
                 if (response.isSuccessful && response.body()!=null){
-                    //TODO
+                    var result = response.body()
+                    if (result != null) {
+                        onSuccessHandler(result)
+                    }
                 }
             }
             override fun onFailure(call: Call<Todo>, t: Throwable) {
                 t.printStackTrace()
             }
         })
-
     }
 
     private fun getTodoListFromDb() {
+        //TODO clear existing todos
+        var parentNode: LinearLayout = findViewById(R.id.mainContainer)
+        parentNode.removeAllViews()
         val call = apiInterface.getTodoList()
         call.enqueue(object : Callback<List<Todo>> {
             override fun onResponse(call: Call<List<Todo>>, response: Response<List<Todo>>) {
@@ -65,18 +75,19 @@ class MainActivity : ComponentActivity() {
     }
 
     fun addTodoManually() {
-        val name = "Todo №" + todoIterator.toString()
-        val newTodoModel = TodoModel(name, false)
-        postTodo(gson.toJson(newTodoModel))
+        val name = "Todo №" + (todoIterator + 1).toString()
+        val todoModel = TodoModel(name, false)
+        postTodo(todoModel)
         getTodoListFromDb()
     }
 
-    fun postTodo(jsonString: String) {
-        val call = apiInterface.addTodo(jsonString)
+    fun postTodo(todoModel: TodoModel) {
+        todoIterator++
+        val call = apiInterface.addTodo(todoModel)
         call.enqueue(object : Callback<Todo> {
             override fun onResponse(call: Call<Todo>, response: Response<Todo>) {
                 if (response.isSuccessful && response.body()!=null){
-                    //TODO
+                    getTodoListFromDb()
                 }
             }
             override fun onFailure(call: Call<Todo>, t: Throwable) {
@@ -95,16 +106,12 @@ class MainActivity : ComponentActivity() {
             .setView(dialogView)
             .setPositiveButton("Save") { dialog, _ ->
                 val userInput = editTextInput.text.toString()
-                getTodoById(id)
-
-//                val redactedTodoModel = TodoModel(userInput, )
                 // TODO Change the value inside Db/todoList
-
                 val call = apiInterface.redactTodoItem(id, userInput)
                 call.enqueue(object : Callback<String> {
                     override fun onResponse(call: Call<String>, response: Response<String>) {
                         if (response.isSuccessful && response.body()!=null){
-                            //TODO
+                            //Nothing I guess...
                         }
                     }
                     override fun onFailure(call: Call<String>, t: Throwable) {
@@ -144,11 +151,18 @@ class MainActivity : ComponentActivity() {
             checkBox.isChecked = true
         }
         checkBox.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                //TODO call the change state query
-            } else {
-                //TODO call the change state query
-            }
+            val call = apiInterface.changeCompleteStatus(todo.Id)
+            call.enqueue(object : Callback<Todo> {
+                override fun onResponse(call: Call<Todo>, response: Response<Todo>) {
+                    if (response.isSuccessful && response.body()!=null){
+                        //TODO
+                        getTodoListFromDb()
+                    }
+                }
+                override fun onFailure(call: Call<Todo>, t: Throwable) {
+                    t.printStackTrace()
+                }
+            })
         }
 
         val todoNameView = TextView(this)
@@ -167,16 +181,12 @@ class MainActivity : ComponentActivity() {
             text = "\uD83D\uDDD1\uFE0F"
         }
         deleteButton.setOnClickListener {
-            var parentNode: LinearLayout = findViewById(R.id.mainContainer)
-            var childNode: LinearLayout = parentNode.findViewWithTag<LinearLayout>(linearLayoutId)
-            parentNode.removeView(childNode)
             //TODO call the delete query
             val call = apiInterface.deleteTodo(todo.Id)
             call.enqueue(object : Callback<Todo> {
                 override fun onResponse(call: Call<Todo>, response: Response<Todo>) {
                     if (response.isSuccessful && response.body()!=null){
-                        //TODO
-                        var testvar1 = 1
+                        getTodoListFromDb()
                     }
                 }
                 override fun onFailure(call: Call<Todo>, t: Throwable) {

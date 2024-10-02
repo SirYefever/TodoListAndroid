@@ -1,5 +1,7 @@
 import com.example.todolistandroid.Todo
+import com.example.todolistandroid.TodoModel
 import retrofit2.Call
+import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -15,11 +17,11 @@ interface ApiInterface {
     @GET("GetTodoCounter")
     fun getTodoCounter(): Call<Int>
     @PUT("ChangeTodoName/{id}")
-    fun redactTodoItem(@Path("id") id: Long, @Query("todoModel") jsonString: String): Call<String> // What should it return??? maybe okhttp3.Call?
+    fun redactTodoItem(@Path("id") id: Long, @Query("newName") string: String): Call<String> // What should it return??? maybe okhttp3.Call?
     @PUT("ChangeCompleteStatus/{id}")
     fun changeCompleteStatus(@Path("id") id: Long): Call<Todo>
     @POST("AddTodo")
-    fun addTodo(jsonString: String): Call<Todo>
+    fun addTodo(@Body todoModel: TodoModel): Call<Todo>
     @PUT("LoadTodoList")
     fun loadTodoList(): Call<List<Todo>>
     @DELETE("DeleteTodo/{id}")
