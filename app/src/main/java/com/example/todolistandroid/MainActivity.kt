@@ -100,14 +100,15 @@ class MainActivity : ComponentActivity() {
     fun manageRedacting(id: Long) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_input, null)
         val editTextInput = dialogView.findViewById<EditText>(R.id.alertTextEdit)
+        val isCompleteStatus = getTodoById(id)
 
         val dialogBuilder = AlertDialog.Builder(this)
             .setTitle("Set description")
             .setView(dialogView)
             .setPositiveButton("Save") { dialog, _ ->
                 val userInput = editTextInput.text.toString()
-                // TODO Change the value inside Db/todoList
-                val call = apiInterface.redactTodoItem(id, userInput)
+                val todoModel = TodoModel(userInput, handledTodo.IsComplete)
+                val call = apiInterface.redactTodoItem(id, todoModel)
                 call.enqueue(object : Callback<String> {
                     override fun onResponse(call: Call<String>, response: Response<String>) {
                         if (response.isSuccessful && response.body()!=null){
@@ -220,11 +221,9 @@ class MainActivity : ComponentActivity() {
         AddTodoButton.setOnClickListener {
             addTodoManually()
         }
-        val ExportButton: Button = findViewById<Button>(R.id.buttonExport)
-        ExportButton.setOnClickListener {
-        }
-        val ImportButton: Button = findViewById<Button>(R.id.buttonImport)
-        ImportButton.setOnClickListener {
+        val RefreshButton: Button = findViewById<Button>(R.id.refreshB)
+        RefreshButton.setOnClickListener {
+            getTodoListFromDb()
         }
         getApiInterface()
         getTodoListFromDb()
