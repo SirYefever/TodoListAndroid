@@ -17,16 +17,12 @@ import com.google.gson.Gson
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.io.Console
 
 
 class MainActivity : ComponentActivity() {
     private lateinit var apiInterface: ApiInterface
 
     val gson = Gson()
-//    var todoMap = mutableMapOf<Long, Todo>()
-    var todoList = mutableListOf<Todo>()
-    var doneCounter: Int = 0
     var todoIterator: Int = 0
     var handledTodo = Todo(0, null, false)
 
@@ -56,13 +52,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun getTodoListFromDb() {
-        //TODO clear existing todos
         var parentNode: LinearLayout = findViewById(R.id.mainContainer)
-        parentNode.removeAllViews()
         val call = apiInterface.getTodoList()
         call.enqueue(object : Callback<List<Todo>> {
             override fun onResponse(call: Call<List<Todo>>, response: Response<List<Todo>>) {
                 if (response.isSuccessful && response.body()!=null){
+                    parentNode.removeAllViews()
                     response.body()!!.forEach { element ->
                         addTodoView(element)
                     }
@@ -111,9 +106,6 @@ class MainActivity : ComponentActivity() {
                 val call = apiInterface.redactTodoItem(id, todoModel)
                 call.enqueue(object : Callback<String> {
                     override fun onResponse(call: Call<String>, response: Response<String>) {
-                        if (response.isSuccessful && response.body()!=null){
-                            //Nothing I guess...
-                        }
                     }
                     override fun onFailure(call: Call<String>, t: Throwable) {
                         t.printStackTrace()
@@ -156,7 +148,6 @@ class MainActivity : ComponentActivity() {
             call.enqueue(object : Callback<Todo> {
                 override fun onResponse(call: Call<Todo>, response: Response<Todo>) {
                     if (response.isSuccessful && response.body()!=null){
-                        //TODO
                         getTodoListFromDb()
                     }
                 }
@@ -182,7 +173,6 @@ class MainActivity : ComponentActivity() {
             text = "\uD83D\uDDD1\uFE0F"
         }
         deleteButton.setOnClickListener {
-            //TODO call the delete query
             val call = apiInterface.deleteTodo(todo.Id)
             call.enqueue(object : Callback<Todo> {
                 override fun onResponse(call: Call<Todo>, response: Response<Todo>) {
@@ -216,7 +206,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
         val AddTodoButton: Button = findViewById<Button>(R.id.buttonAdd)
-        val MainScrollView: LinearLayout = findViewById<LinearLayout>(R.id.mainContainer)
 
         AddTodoButton.setOnClickListener {
             addTodoManually()

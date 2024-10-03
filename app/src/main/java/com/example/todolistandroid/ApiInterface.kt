@@ -16,7 +16,7 @@ interface ApiInterface {
     fun getTodo(@Path("id") id: Long): Call<Todo>
     @GET("GetTodoCounter")
     fun getTodoCounter(): Call<Int>
-    @PUT("ChangeTodoName/{id}")
+    @PUT("RedactTodo/{id}")
     fun redactTodoItem(@Path("id") id: Long, @Body todoModel: TodoModel): Call<String> // What should it return??? maybe okhttp3.Call?
     @PUT("ChangeCompleteStatus/{id}")
     fun changeCompleteStatus(@Path("id") id: Long): Call<Todo>
