@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">TodoListAndroid</string>
+    <string name="export_message" id="exportMessage">Saved to Downloads</string>
+</resources>
